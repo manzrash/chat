@@ -1,25 +1,69 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState, useEffect } from "react";
+import useUpdateComment from "./hooks/useUpdateComment";
+import useHelper from "./hooks/useHelper";
+import CommentList from "./Components/CommentList";
+import CommentInput from "./Components/CommentInput";
+import "./index.css";
+import Sorting from "./Components/Sorting";
 
-function App() {
+const App = () => {
+  const [commentsData, setCommentsData] = useState([]);
+
+  const { addComment, addReply, edit, remove } = useUpdateComment();
+  const { getDataFromLocalStorage, storeToLocalStorage } = useHelper();
+
+  useEffect(() => {
+    const newData = getDataFromLocalStorage();
+    setCommentsData(newData);
+    // eslint-disable-next-line
+  }, []);
+
+  const newComment = (data) => {
+    const updatedcommentlist = addComment(commentsData, data);
+    storeToLocalStorage(updatedcommentlist);
+    setCommentsData([...updatedcommentlist]);
+  };
+
+  const newReply = (commentId, data) => {
+    const updatedcommentlist = addReply(commentsData, commentId, data);
+    storeToLocalStorage(updatedcommentlist);
+    setCommentsData([...updatedcommentlist]);
+  };
+
+  const editPost = (commentId, data) => {
+    const updatedcommentlist = edit(commentsData, commentId, data);
+    storeToLocalStorage(updatedcommentlist);
+    setCommentsData([...updatedcommentlist]);
+  };
+
+  const deletePost = (commentId) => {
+    const updatedcommentlist = remove(commentsData, commentId);
+    storeToLocalStorage(updatedcommentlist);
+    setCommentsData([...updatedcommentlist]);
+  };
+
+  const handleSorting = (data) => {
+    setCommentsData([...data]);
+  };
+
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <CommentInput type="Comment" addComment={newComment} />
+      <Sorting unsortedData={commentsData} onSorting={handleSorting} />
+      {commentsData?.map((cmnt) => {
+        return (
+          <CommentList
+            key={cmnt.id}
+            comment={cmnt}
+            addReply={newReply}
+            editComment={editPost}
+            deleteComment={deletePost}
+          />
+        );
+      })}
     </div>
   );
-}
+};
 
 export default App;
